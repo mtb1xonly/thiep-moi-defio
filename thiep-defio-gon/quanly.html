@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quản lý link mời - DEFIO MediaNet</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#04324f;--cyan:#00AEEF;--cyan-soft:#46c8f7;--ink:#0f2233;--muted:#6b8299}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Be Vietnam Pro',sans-serif;background:#eef3f7;color:var(--ink);padding:22px 14px 50px}
+  .wrap{max-width:640px;margin:0 auto}
+  h1{font-size:21px;font-weight:700}
+  h1 span{color:var(--cyan)}
+  .sub{color:var(--muted);font-size:13.5px;margin-top:5px;line-height:1.5}
+  .setup{background:#fff;border:1px solid #dce6ee;border-radius:14px;padding:16px;margin-top:18px}
+  .setup label{font-size:12.5px;font-weight:600;color:var(--navy);display:block;margin-bottom:7px}
+  .setup input{width:100%;box-sizing:border-box;padding:11px 13px;border:1.5px solid #cddae5;border-radius:10px;
+    font-family:inherit;font-size:14px;outline:none}
+  .setup input:focus{border-color:var(--cyan)}
+  .setup .hint{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.5}
+  .setup .hint code{background:#f0f4f8;padding:1px 6px;border-radius:5px;font-size:12px}
+  .count{font-size:13px;color:var(--muted);margin:20px 0 10px}
+  .list{display:flex;flex-direction:column;gap:9px}
+  .item{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #dce6ee;border-radius:12px;
+    padding:13px 15px}
+  .item .nm{flex:1;font-weight:600;font-size:14.5px;min-width:0}
+  .item .acts{display:flex;gap:7px;flex-shrink:0}
+  .btn{border:none;border-radius:9px;cursor:pointer;font-family:inherit;font-weight:600;font-size:12.5px;
+    padding:9px 13px;display:inline-flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap}
+  .btn-copy{background:var(--cyan);color:#fff}
+  .btn-copy:hover{background:#0098d4}
+  .btn-copy.done{background:#22a06b}
+  .btn-open{background:#eaf1f6;color:var(--navy)}
+  .btn-open:hover{background:#dde7ee}
+  .topbar{display:flex;gap:9px;margin:14px 0 4px}
+  .topbar .btn{flex:1;justify-content:center;padding:11px}
+  .btn-all{background:var(--navy);color:#fff}
+  .search{width:100%;box-sizing:border-box;padding:11px 14px;border:1.5px solid #cddae5;border-radius:11px;
+    font-family:inherit;font-size:14px;outline:none;margin-bottom:12px}
+  .search:focus{border-color:var(--cyan)}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(80px);
+    background:var(--navy);color:#fff;padding:12px 20px;border-radius:30px;font-size:13.5px;font-weight:500;
+    box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:all .25s;pointer-events:none;z-index:100;max-width:90%;text-align:center}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Quản lý link mời <span>DEFIO MediaNet</span></h1>
+  <p class="sub">Bấm "Copy link" ở khách nào, link mời riêng của người đó sẽ vào bộ nhớ tạm. Dán thẳng vào Zalo gửi khách.</p>
+
+  <div class="setup">
+    <label>Địa chỉ web của thiệp (sau khi up Vercel/GitHub)</label>
+    <input type="text" id="baseUrl" placeholder="vd: https://thiep-defio.vercel.app/thiep.html"
+      oninput="saveBase()">
+    <p class="hint">Dán địa chỉ file <code>thiep.html</code> sau khi up. Mọi link copy sẽ tự dựa theo địa chỉ này. Nếu để trống, link sẽ dùng đường dẫn tương đối.</p>
+  </div>
+
+  <div class="topbar">
+    <button class="btn btn-all" onclick="copyAll()">📋 Copy toàn bộ danh sách link</button>
+  </div>
+
+  <input class="search" id="search" placeholder="Tìm tên khách..." oninput="render()">
+  <div class="count" id="count"></div>
+  <div class="list" id="list"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const GUESTS = ["Mr Trần Nhật Quang", "Mr Hoàng Xuân Học", "Mr Hải", "Mr Phước", "Mr Richman", "Mr Thuấn", "Mr Nguyễn Văn Nam", "Mr Hi Trần", "Mr Hoài", "Mr Thiên An", "Mr MIKE VŨ", "Mr Hoàng Quang Minh", "Mr Phạm Trọng Nhân", "Mr Đình Kiệt", "Mr Dương Thành Trung", "Mr Hoàng Xuân Học", "Mr Lý Đình Thi", "Mr Tuấn Anh", "Mr Cao Văn Tùng", "Mr Nguyễn Văn Nam", "Mr Nông Đức Anh", "Mrs Mai Trang", "Mr Mai Tuấn Vũ", "Mr Lê Minh Trung", "Mr Lê Quang Đạt", "Mr Bùi Viết Đức", "Mr Nguyễn Trọng Huân"];
+
+function getBase(){
+  let b=document.getElementById('baseUrl').value.trim();
+  if(!b) b='thiep.html';
+  return b;
+}
+function linkFor(name){
+  const base=getBase();
+  const sep=base.indexOf('?')>=0?'&':'?';
+  return base+sep+'ten='+encodeURIComponent(name);
+}
+function saveBase(){
+  try{ localStorage.setItem('defio_base', document.getElementById('baseUrl').value); }catch(e){}
+  render();
+}
+function loadBase(){
+  try{ const v=localStorage.getItem('defio_base'); if(v) document.getElementById('baseUrl').value=v; }catch(e){}
+}
+
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(window.__tt); window.__tt=setTimeout(()=>t.classList.remove('show'),1800);
+}
+function copyText(txt, cb){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(cb).catch(()=>fallback(txt,cb));
+  } else fallback(txt,cb);
+}
+function fallback(txt,cb){
+  const ta=document.createElement('textarea'); ta.value=txt; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); }catch(e){}
+  document.body.removeChild(ta); cb&&cb();
+}
+
+function copyLink(name, btn){
+  copyText(linkFor(name), ()=>{
+    btn.classList.add('done'); btn.textContent='✓ Đã copy';
+    toast('Đã copy link mời '+name);
+    setTimeout(()=>{btn.classList.remove('done'); btn.innerHTML='📋 Copy link';},1600);
+  });
+}
+function copyAll(){
+  const all=GUESTS.map(n=>n+': '+linkFor(n)).join('\n');
+  copyText(all, ()=>toast('Đã copy toàn bộ '+GUESTS.length+' link'));
+}
+
+function render(){
+  const f=(document.getElementById('search').value||'').toLowerCase().trim();
+  const list=document.getElementById('list'); list.innerHTML='';
+  let shown=0;
+  GUESTS.forEach(name=>{
+    if(f && name.toLowerCase().indexOf(f)===-1) return; shown++;
+    const it=document.createElement('div'); it.className='item';
+    it.innerHTML='<span class="nm">'+name+'</span><div class="acts">'+
+      '<button class="btn btn-open">Mở thử</button>'+
+      '<button class="btn btn-copy">📋 Copy link</button></div>';
+    it.querySelector('.btn-open').onclick=()=>window.open(linkFor(name),'_blank');
+    it.querySelector('.btn-copy').onclick=function(){copyLink(name,this)};
+    list.appendChild(it);
+  });
+  document.getElementById('count').textContent='Tổng '+GUESTS.length+' khách'+(f?(' · hiện '+shown):'');
+}
+loadBase(); render();
+</script>
+</body>
+</html>
