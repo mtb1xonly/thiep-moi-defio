@@ -333,12 +333,12 @@ body{padding:26px 14px 60px}
           </div>
         </div>
 
-        <button class="btn" id="rsvpBtn" onclick="guiXacNhan()">Xác nhận</button>
+        <button class="btn" id="rsvpBtn" onclick="guiXacNhan()">Xác nhận tham dự</button>
       </div>
 
       <div class="rsvp-done" id="rsvpDone">
         <div class="ic"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></div>
-        <h4 id="doneTitle">Defio đã ghi nhận câu trả lời!</h4>
+        <h4 id="doneTitle">Đã ghi nhận, cảm ơn bạn!</h4>
         <p id="doneMsg">Chúng tôi rất mong được gặp bạn tại buổi lễ.</p>
       </div>
     </div>
@@ -382,11 +382,12 @@ body{padding:26px 14px 60px}
     btn.disabled=true; btn.textContent='Đang gửi...';
     var ten=(document.getElementById('guestName')||{}).textContent || 'Khách';
     var payload={
+      ma: (window.__maKhach || ''),
       ten: ten,
       thamdu: window.__join ? 'Có tham dự' : 'Không tham dự',
       songuoi: window.__join ? window.__num : '0'
     };
-    var URL="__SCRIPT_URL__";
+    var URL="https://script.google.com/macros/s/AKfycbwYfkK_gXxIQTZ-yr4f-ILr7Ho8UqYI9yiasUcYY9bRjfEoRi3RyOvPUhBdhdfXgeVV/exec";
     function banConfetti(){
       var mau=['#00AEEF','#46c8f7','#EBD9A6','#F6EAC4','#bfa563','#ffffff'];
       var box=document.createElement('div'); box.className='confetti';
@@ -417,8 +418,12 @@ body{padding:26px 14px 60px}
       }
     }
     if(!URL || URL.indexOf('http')!==0){ showDone(); return; } // chua gan link thi van bao thanh cong
-    fetch(URL,{method:'POST',body:JSON.stringify(payload)})
-      .then(function(){showDone()})
+    fetch(URL,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(payload)
+    }).then(function(){showDone()})
       .catch(function(){showDone()});  // du loi mang van bao da nhan de khach yen tam
   };
 
@@ -464,6 +469,7 @@ body{padding:26px 14px 60px}
   var KHACH_LIST = [{"ma": "01", "ten": "Mr Trần Nhật Quang"}, {"ma": "02", "ten": "Mr Hoàng Xuân Học"}, {"ma": "03", "ten": "Mr Hải"}, {"ma": "04", "ten": "Mr Phước"}, {"ma": "05", "ten": "Mr Richman"}, {"ma": "06", "ten": "Mr Thuấn"}, {"ma": "07", "ten": "Mr Nguyễn Văn Nam"}, {"ma": "08", "ten": "Mr Hi Trần"}, {"ma": "09", "ten": "Mr Hoài"}, {"ma": "10", "ten": "Mr Thiên An"}, {"ma": "11", "ten": "Mr MIKE VŨ"}, {"ma": "12", "ten": "Mr Hoàng Quang Minh"}, {"ma": "13", "ten": "Mr Phạm Trọng Nhân"}, {"ma": "14", "ten": "Mr Đình Kiệt"}, {"ma": "15", "ten": "Mr Dương Thành Trung"}, {"ma": "16", "ten": "Mr Hoàng Xuân Học"}, {"ma": "17", "ten": "Mr Lý Đình Thi"}, {"ma": "18", "ten": "Mr Tuấn Anh"}, {"ma": "19", "ten": "Mr Cao Văn Tùng"}, {"ma": "20", "ten": "Mr Nguyễn Văn Nam"}, {"ma": "21", "ten": "Mr Nông Đức Anh"}, {"ma": "22", "ten": "Mrs Mai Trang"}, {"ma": "23", "ten": "Mr Mai Tuấn Vũ"}, {"ma": "24", "ten": "Mr Lê Minh Trung"}, {"ma": "25", "ten": "Mr Lê Quang Đạt"}, {"ma": "26", "ten": "Mr Bùi Viết Đức"}, {"ma": "27", "ten": "Mr Nguyễn Trọng Huân"}];
   var params=new URLSearchParams(location.search);
   var k=params.get('dfo');           // ma khach: ?dfo=01
+  if(k) window.__maKhach=k;
   var ten=params.get('ten');       // hoac ten day du: ?ten=...
   if(k){ for(var i=0;i<KHACH_LIST.length;i++){ if(KHACH_LIST[i].ma===k){ ten=KHACH_LIST[i].ten; break; } } }
   var gn=document.getElementById('guestName');
