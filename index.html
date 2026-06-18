@@ -160,7 +160,8 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:#000;display:flex;justif
 .rsvp.pulse{animation:rsvpglow 2.6s ease-in-out infinite}
 @keyframes rsvpglow{0%,100%{box-shadow:0 0 0 0 rgba(75,184,232,0)}50%{box-shadow:0 0 0 4px rgba(75,184,232,.12)}}
 /* ten khach co gian cho khong vo */
-.guest{font-size:clamp(26px,7vw,38px);line-height:1.28;padding:2px 2px 6px;word-break:keep-all;overflow-wrap:break-word}
+.guest{font-size:40px;line-height:1.28;padding:2px 2px 6px;word-break:keep-all;overflow-wrap:break-word;white-space:nowrap}
+.guest.wrap{white-space:normal}
 
 </style></head>
 <body><div class="card"><div class="glowtop"></div><div class="glowmid"></div><div class="stars" id="stars"></div><div class="frame"><span class="cnr tl"></span><span class="cnr tr"></span><span class="cnr bl"></span><span class="cnr br"></span></div><div class="inner">
@@ -317,6 +318,29 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:#000;display:flex;justif
   if(k){ for(var i=0;i<KHACH_LIST.length;i++){ if(KHACH_LIST[i].ma===k){ ten=KHACH_LIST[i].ten; break; } } }
   var gn=document.getElementById('guestName');
   if(gn && ten){ gn.textContent=ten; }
+
+  // ===== tu co co chu ten cho vua mot dong tren moi man hinh =====
+  function fitGuest(){
+    var g=document.getElementById('guestName');
+    if(!g) return;
+    g.classList.remove('wrap');
+    g.style.whiteSpace='nowrap';
+    g.style.fontSize='';                 // ve mac dinh 40px
+    var max=40, min=22, size=max;
+    g.style.fontSize=size+'px';
+    // ha dan toi khi khong tran ngang container
+    var guard=0;
+    while(g.scrollWidth > g.clientWidth && size>min && guard<40){
+      size-=1; g.style.fontSize=size+'px'; guard++;
+    }
+    // neu cham san ma van tran (ten cuc dai) thi cho xuong dong dep
+    if(g.scrollWidth > g.clientWidth){
+      g.style.whiteSpace='normal';
+      g.classList.add('wrap');
+    }
+  }
+  fitGuest();
+  window.addEventListener('resize', fitGuest);
 })();
 </script>
 </body></html>
