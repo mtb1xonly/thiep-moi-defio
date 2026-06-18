@@ -314,10 +314,31 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:#000;display:flex;justif
   var params=new URLSearchParams(location.search);
   var k=params.get('dfo');
   if(k) window.__maKhach=k;
-  var ten=params.get('ten');
-  if(k){ for(var i=0;i<KHACH_LIST.length;i++){ if(KHACH_LIST[i].ma===k){ ten=KHACH_LIST[i].ten; break; } } }
+  var tenParam=params.get('ten');
   var gn=document.getElementById('guestName');
-  if(gn && ten){ gn.textContent=ten; }
+
+  // chuan hoa ma: bo so 0 dang truoc de "01" va "1" khop nhau
+  function chuanMa(v){ v=String(v||'').trim(); return /^\d+$/.test(v)? String(parseInt(v,10)) : v; }
+
+  // 1. neu co ?ten= thi uu tien tuyet doi, hien ngay
+  if(tenParam && gn){ gn.textContent=tenParam; fitGuest(); }
+  // 2. neu co ?dfo= thi hien ngay tu danh sach du phong (khong phai cho mang)
+  else if(k){
+    var km=chuanMa(k);
+    for(var i=0;i<KHACH_LIST.length;i++){
+      if(chuanMa(KHACH_LIST[i].ma)===km){ if(gn){gn.textContent=KHACH_LIST[i].ten;} break; }
+    }
+    fitGuest();
+    // 3. roi goi Apps Script lay ten moi nhat tu sheet, neu khac thi cap nhat
+    var APP_URL="https://script.google.com/macros/s/AKfycbwYfkK_gXxIQTZ-yr4f-ILr7Ho8UqYI9yiasUcYY9bRjfEoRi3RyOvPUhBdhdfXgeVV/exec";
+    fetch(APP_URL+"?dfo="+encodeURIComponent(k))
+      .then(function(r){return r.json();})
+      .then(function(res){
+        if(res && res.ok && res.ten && gn && res.ten!==gn.textContent){
+          gn.textContent=res.ten; fitGuest();
+        }
+      }).catch(function(){ /* loi mang thi giu ten du phong, thiep khong vo */ });
+  }
 
   // ===== tu co co chu ten cho vua mot dong tren moi man hinh =====
   function fitGuest(){
