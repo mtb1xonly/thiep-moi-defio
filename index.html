@@ -146,10 +146,9 @@
     font-family: 'Cormorant Garamond', serif;
     font-weight: 600;
     font-size: 30px;
-    line-height: 1.15;
+    line-height: 1.18;
     margin: 6px 0 12px;
-    white-space: nowrap;
-    overflow: hidden;
+    white-space: normal;
     color: #ecd496;
     text-shadow: 0 1px 8px rgba(201,164,95,0.25);
   }
@@ -880,22 +879,27 @@
     }
   })();
 
-  // Co chữ tên khách cho vừa đúng một dòng: tên ngắn thì to, tên dài thì nhỏ lại, không bao giờ xuống dòng
+  // Tên ngắn để cỡ to nhất một dòng cho nổi bật. Tên dài chỉ co tới một ngưỡng vẫn to,
+  // nếu vẫn không vừa thì để xuống dòng cân đối chứ không bóp chữ nhỏ xíu.
   function fitGuest(){
     const g = document.getElementById('guestName');
     if (!g) return;
-    const MAX = 34, MIN = 15;
-    // bề rộng dùng được = chiều rộng trong của thẻ (đã trừ padding)
+    const MAX = 34, MIN = 28;
     const avail = g.clientWidth;
     if (!avail) return;
+    // đo một dòng: tạm cấm xuống dòng để biết bề rộng thật của chữ
+    g.style.whiteSpace = 'nowrap';
     let size = MAX;
     g.style.fontSize = size + 'px';
-    // co dần tới khi chữ nằm gọn trong một dòng
     let guard = 0;
-    while (g.scrollWidth > avail && size > MIN && guard < 60) {
+    while (g.scrollWidth > avail && size > MIN && guard < 40) {
       size -= 0.5;
       g.style.fontSize = size + 'px';
       guard++;
+    }
+    // nếu ở cỡ tối thiểu vẫn tràn (tên rất dài) thì cho xuống dòng, giữ chữ to
+    if (g.scrollWidth > avail) {
+      g.style.whiteSpace = 'normal';
     }
   }
 
