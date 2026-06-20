@@ -286,6 +286,32 @@
     font-weight: 300;
     margin-top: 1px;
   }
+  /* dòng ngày trong phần Thời gian */
+  .it-date {
+    font-size: 14px;
+    color: #d7e0ee;
+    font-weight: 500;
+    margin: 2px 0 8px;
+  }
+  /* timeline gọn nằm trong phần Thời gian */
+  .tl-inline {
+    border-left: 1px solid rgba(90,140,220,0.4);
+    padding-left: 16px;
+    margin-top: 2px;
+  }
+  .tl-inline .tl-item {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 4px 0;
+  }
+  .tl-inline .tl-item::before {
+    left: -21px;
+    top: 9px;
+  }
+  .tl-inline .tl-time {
+    min-width: 46px;
+  }
 
   /* Ảnh trái đất nửa trái */
   .earth-bg {
@@ -458,6 +484,19 @@
     font-size: 14px;
     color: #e6ecf6;
     font-weight: 500;
+    line-height: 1.35;
+    flex: 1;
+  }
+  .opt-sub {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 300;
+    color: #8ea2c0;
+    margin-top: 2px;
+  }
+  .opt-decline {
+    color: #9aa7bd;
+    font-weight: 400;
   }
 
   /* Badge tiêu đề RSVP */
@@ -606,7 +645,21 @@
           </div>
           <div class="info-text">
             <div class="it-label">THỜI GIAN</div>
-            <div class="it-value it-time">8h30 đón khách &middot; 9h00 khai mạc<br>Thứ Năm, 25/06/2026</div>
+            <div class="it-date">Thứ Năm, 25/06/2026</div>
+            <div class="timeline tl-inline">
+              <div class="tl-item">
+                <div class="tl-time">8h30</div>
+                <div class="tl-desc">Đón khách</div>
+              </div>
+              <div class="tl-item">
+                <div class="tl-time">9h00</div>
+                <div class="tl-desc">Khai mạc</div>
+              </div>
+              <div class="tl-item">
+                <div class="tl-time">18h00</div>
+                <div class="tl-desc">Tiệc tối</div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="info-sep"></div>
@@ -668,7 +721,7 @@
               <path d="M5 12l5 5L20 7"/>
             </svg>
           </div>
-          <div class="opt-text">Có, tôi sẽ tham dự</div>
+          <div class="opt-text">Tôi sẽ tham dự cả hai buổi<span class="opt-sub">Khai mạc 9h00 và tiệc tối 18h00</span></div>
         </div>
 
         <div class="option" onclick="select(this)">
@@ -677,7 +730,25 @@
               <path d="M5 12l5 5L20 7"/>
             </svg>
           </div>
-          <div class="opt-text">Rất tiếc, tôi không thể tham dự</div>
+          <div class="opt-text">Tôi chỉ tham dự được buổi sáng<span class="opt-sub">Khai mạc 9h00</span></div>
+        </div>
+
+        <div class="option" onclick="select(this)">
+          <div class="opt-circle">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3">
+              <path d="M5 12l5 5L20 7"/>
+            </svg>
+          </div>
+          <div class="opt-text">Tôi chỉ tham dự được buổi tối<span class="opt-sub">Tiệc tối 18h00</span></div>
+        </div>
+
+        <div class="option" onclick="select(this)">
+          <div class="opt-circle">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3">
+              <path d="M5 12l5 5L20 7"/>
+            </svg>
+          </div>
+          <div class="opt-text opt-decline">Rất tiếc, tôi không thể tham dự</div>
         </div>
 
         <div class="count-wrap" id="countWrap">
@@ -713,12 +784,14 @@
     s.appendChild(star);
   }
   function select(el) {
-    document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+    const opts = Array.from(document.querySelectorAll('.option'));
+    opts.forEach(o => o.classList.remove('selected'));
     el.classList.add('selected');
-    // Nếu chọn "không thể đến" thì ẩn phần số người
-    const idx = Array.from(document.querySelectorAll('.option')).indexOf(el);
+    // Lựa chọn cuối là "không thể tham dự" thì ẩn phần số người
+    const idx = opts.indexOf(el);
+    const isDecline = (idx === opts.length - 1);
     const cw = document.getElementById('countWrap');
-    if (cw) cw.style.display = (idx === 1) ? 'none' : 'block';
+    if (cw) cw.style.display = isDecline ? 'none' : 'block';
   }
   function selectCount(el) {
     document.querySelectorAll('.count-box').forEach(o => o.classList.remove('selected'));
@@ -731,9 +804,15 @@
   function confirmRsvp() {
     const btn = document.getElementById('btnConfirm');
     if (btn.disabled) return;
-    const going = document.querySelectorAll('.option')[0].classList.contains('selected');
+    const opts = Array.from(document.querySelectorAll('.option'));
+    const selIdx = opts.findIndex(o => o.classList.contains('selected'));
+    const going = (selIdx !== opts.length - 1);   // lựa chọn cuối là không tham dự
     btn.disabled = true;
     btn.textContent = 'Đang gửi...';
+
+    // nội dung lựa chọn để ghi vào Sheet (đúng buổi tham dự)
+    const labels = ['Cả 2 buổi', 'Buổi sáng', 'Buổi tối', 'Không tham dự'];
+    const thamdu = labels[selIdx] || 'Không tham dự';
 
     // lấy số người đang chọn
     let songuoi = '1';
@@ -744,7 +823,7 @@
     const payload = {
       ma: (window.__maKhach || ''),
       ten: ten,
-      thamdu: going ? 'Có tham dự' : 'Không tham dự',
+      thamdu: thamdu,
       songuoi: going ? songuoi : '0'
     };
 
