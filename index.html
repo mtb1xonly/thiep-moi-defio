@@ -145,10 +145,11 @@
   .guest-name {
     font-family: 'Cormorant Garamond', serif;
     font-weight: 600;
-    font-size: clamp(19px, 5.6vw, 27px);
+    font-size: 30px;
     line-height: 1.15;
     margin: 6px 0 12px;
-    white-space: normal;
+    white-space: nowrap;
+    overflow: hidden;
     color: #ecd496;
     text-shadow: 0 1px 8px rgba(201,164,95,0.25);
   }
@@ -879,21 +880,30 @@
     }
   })();
 
-  // Co chữ tên khách cho vừa một dòng, không tràn, không vỡ
+  // Co chữ tên khách cho vừa đúng một dòng: tên ngắn thì to, tên dài thì nhỏ lại, không bao giờ xuống dòng
   function fitGuest(){
     const g = document.getElementById('guestName');
     if (!g) return;
-    const parent = g.parentElement;
-    let size = 34;
+    const MAX = 34, MIN = 15;
+    // bề rộng dùng được = chiều rộng trong của thẻ (đã trừ padding)
+    const avail = g.clientWidth;
+    if (!avail) return;
+    let size = MAX;
     g.style.fontSize = size + 'px';
+    // co dần tới khi chữ nằm gọn trong một dòng
     let guard = 0;
-    while (g.scrollWidth > parent.clientWidth && size > 18 && guard < 40) {
-      size -= 0.5; g.style.fontSize = size + 'px'; guard++;
+    while (g.scrollWidth > avail && size > MIN && guard < 60) {
+      size -= 0.5;
+      g.style.fontSize = size + 'px';
+      guard++;
     }
   }
 
   fitAll();
 
-</script>
+  // font web tải xong thì đo lại cho chuẩn (tránh tính cỡ theo font hệ thống rồi tràn)
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(fitAll);
+  }</script>
 </body>
 </html>
