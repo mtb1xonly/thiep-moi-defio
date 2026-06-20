@@ -95,9 +95,9 @@
 
   /* Cột phải */
   .right-col {
-    width: 56%;
+    width: 54%;
     margin-left: auto;
-    padding: 30px 8px 0 26px;
+    padding: 30px 10px 0 16px;
     box-sizing: border-box;
   }
   .header {
@@ -145,10 +145,12 @@
   .guest-name {
     font-family: 'Cormorant Garamond', serif;
     font-weight: 600;
-    font-size: 34px;
-    line-height: 1.18;
+    font-size: 42px;
+    line-height: 1.16;
     margin: 6px 0 12px;
-    white-space: normal;
+    display: inline-block;
+    white-space: nowrap;
+    overflow: visible;
     color: #ecd496;
     text-shadow: 0 1px 8px rgba(201,164,95,0.25);
   }
@@ -587,7 +589,7 @@
         <div class="divider-dot">&#9670;</div>
         <div class="sub-label">Trân trọng kính mời</div>
         <div class="guest-name" id="guestName">Quý khách</div>
-        <div class="attend-label">đến dự</div>
+        <div class="attend-label">đến tham dự</div>
         <div class="event-sub">Lễ khai trương văn phòng</div>
         <div class="brand brand-sub">DEFIO <span class="media">MediaNet</span></div>
       </div>
@@ -604,7 +606,7 @@
           </div>
           <div class="info-text">
             <div class="it-label">THỜI GIAN</div>
-            <div class="it-value it-time">8h30 đón khách &middot; 9h00 khai mạc<br>Thứ Tư, 25/06/2026</div>
+            <div class="it-value it-time">8h30 đón khách &middot; 9h00 khai mạc<br>Thứ Năm, 25/06/2026</div>
           </div>
         </div>
         <div class="info-sep"></div>
@@ -879,27 +881,23 @@
     }
   })();
 
-  // Tên ngắn để cỡ to nhất một dòng cho nổi bật. Tên dài chỉ co tới một ngưỡng vẫn to,
-  // nếu vẫn không vừa thì để xuống dòng cân đối chứ không bóp chữ nhỏ xíu.
+  // Tên khách LUÔN một dòng, không bao giờ tràn mép. Tên ngắn to, tên dài tự co vừa.
   function fitGuest(){
     const g = document.getElementById('guestName');
     if (!g) return;
-    const MAX = 38, MIN = 32;
-    const avail = g.clientWidth;
-    if (!avail) return;
-    // đo một dòng: tạm cấm xuống dòng để biết bề rộng thật của chữ
+    const card = document.querySelector('.card');
+    if (!card) return;
+    const MAX = 42, MIN = 22, SAFE = 18; // lề an toàn tới mép phải thiệp
     g.style.whiteSpace = 'nowrap';
     let size = MAX;
     g.style.fontSize = size + 'px';
+    const cardRight = card.getBoundingClientRect().right;
     let guard = 0;
-    while (g.scrollWidth > avail && size > MIN && guard < 40) {
+    // co tới khi mép phải của chữ cách mép thiệp ít nhất SAFE px
+    while (g.getBoundingClientRect().right > cardRight - SAFE && size > MIN && guard < 80) {
       size -= 0.5;
       g.style.fontSize = size + 'px';
       guard++;
-    }
-    // nếu ở cỡ tối thiểu vẫn tràn (tên rất dài) thì cho xuống dòng, giữ chữ to
-    if (g.scrollWidth > avail) {
-      g.style.whiteSpace = 'normal';
     }
   }
 
@@ -908,6 +906,12 @@
   // font web tải xong thì đo lại cho chuẩn (tránh tính cỡ theo font hệ thống rồi tràn)
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(fitAll);
-  }</script>
+  }
+  // điện thoại: trang render từng nhịp, đo lại vài lần để không bị hụt
+  setTimeout(fitAll, 100);
+  setTimeout(fitAll, 400);
+  setTimeout(fitAll, 1000);
+  // xoay ngang dọc máy thì đo lại
+  window.addEventListener('orientationchange', function(){ setTimeout(fitAll, 200); });</script>
 </body>
 </html>
