@@ -925,7 +925,7 @@
   window.addEventListener('resize', fitAll);
 
   // ===== Đọc tên khách từ link và lấy tên mới nhất từ Google Sheet =====
-  const KHACH_LIST = [{"ma":"01","ten":"Mr Trần Nhật Quang"},{"ma":"02","ten":"Mr Hoàng Xuân Học"},{"ma":"03","ten":"Mr Hải"},{"ma":"04","ten":"Mr Phước"},{"ma":"05","ten":"Mr Richman"},{"ma":"06","ten":"Mr Thuấn"},{"ma":"07","ten":"Mr Nguyễn Văn Nam"},{"ma":"08","ten":"Mr Hi Trần"},{"ma":"09","ten":"Mr Hoài"},{"ma":"10","ten":"Mr Thiên An"},{"ma":"11","ten":"Mr MIKE VŨ"},{"ma":"12","ten":"Mr Hoàng Quang Minh"},{"ma":"13","ten":"Mr Phạm Trọng Nhân"},{"ma":"14","ten":"Mr Đình Kiệt"},{"ma":"15","ten":"Mr Dương Thành Trung"},{"ma":"16","ten":"Mr Hoàng Xuân Học"},{"ma":"17","ten":"Mr Lý Đình Thi"},{"ma":"18","ten":"Mr Tuấn Anh"},{"ma":"19","ten":"Mr Cao Văn Tùng"},{"ma":"20","ten":"Mr Nguyễn Văn Nam"},{"ma":"21","ten":"Mr Nông Đức Anh"},{"ma":"22","ten":"Mrs Mai Trang"},{"ma":"23","ten":"Mr Mai Tuấn Vũ"},{"ma":"24","ten":"Mr Lê Minh Trung"},{"ma":"25","ten":"Mr Lê Quang Đạt"},{"ma":"26","ten":"Mr Bùi Viết Đức"},{"ma":"27","ten":"Mr Nguyễn Trọng Huân"},{"ma":"28","ten":"Mr Công Thành"},{"ma":"29","ten":"Mrs Huyền Min"},{"ma":"30","ten":"Mrs Juny Trần"},{"ma":"31","ten":"Mrs Trang Rương"},{"ma":"32","ten":"Mrs Sydney"},{"ma":"33","ten":"Mr Hải Đăng"},{"ma":"34","ten":"Mr Ngô Văn Ngọc"}];
+  const KHACH_LIST = [{"ma":"01","ten":"Mr Trần Nhật Quang"},{"ma":"02","ten":"Mr Hoàng Xuân Học"},{"ma":"03","ten":"Mr Hải"},{"ma":"04","ten":"Mr Phước"},{"ma":"05","ten":"Mr Richman"},{"ma":"06","ten":"Mr Thuấn"},{"ma":"07","ten":"Mr Nguyễn Văn Nam"},{"ma":"08","ten":"Mr Hi Trần"},{"ma":"09","ten":"Mr Hoài"},{"ma":"10","ten":"Mr Thiên An"},{"ma":"11","ten":"Mr MIKE VŨ"},{"ma":"12","ten":"Mr Hoàng Quang Minh"},{"ma":"13","ten":"Mr Phạm Trọng Nhân"},{"ma":"14","ten":"Mr Đình Kiệt"},{"ma":"15","ten":"Mr Dương Thành Trung"},{"ma":"16","ten":"Mr Hoàng Xuân Học"},{"ma":"17","ten":"Mr Lý Đình Thi"},{"ma":"18","ten":"Mr Tuấn Anh"},{"ma":"19","ten":"Mr Cao Văn Tùng"},{"ma":"20","ten":"Mr Nguyễn Văn Nam"},{"ma":"21","ten":"Mr Nông Đức Anh"},{"ma":"22","ten":"Mrs Mai Trang"},{"ma":"23","ten":"Mr Mai Tuấn Vũ"},{"ma":"24","ten":"Mr Lê Minh Trung"},{"ma":"25","ten":"Mr Lê Quang Đạt"},{"ma":"26","ten":"Mr Bùi Viết Đức"},{"ma":"27","ten":"Mr Nguyễn Trọng Huân"},{"ma":"28","ten":"Mr Công Thành"},{"ma":"29","ten":"Mrs Huyền Min"},{"ma":"30","ten":"Mrs Juny Trần"},{"ma":"31","ten":"Mrs Trang Rương"},{"ma":"32","ten":"Mrs Sydney"},{"ma":"33","ten":"Mr Hải Đăng"},{"ma":"34","ten":"Mr Ngô Văn Ngọc"},{"ma":"35","ten":"Mr Quang Dũng"},{"ma":"36","ten":"Mr Đỗ Đức Hoàng"},{"ma":"37","ten":"Mr Nguyễn Hữu Nghĩa"}];
 
   (function initGuest(){
     const params = new URLSearchParams(location.search);
@@ -942,17 +942,24 @@
     // 2. có ?dfo= thì hiện ngay từ danh sách dự phòng rồi gọi Sheet lấy tên mới nhất
     else if (k && gn) {
       const km = chuanMa(k);
+      let found = false;
       for (let i = 0; i < KHACH_LIST.length; i++) {
-        if (chuanMa(KHACH_LIST[i].ma) === km) { gn.textContent = KHACH_LIST[i].ten; break; }
+        if (chuanMa(KHACH_LIST[i].ma) === km) { gn.textContent = KHACH_LIST[i].ten; found = true; break; }
       }
+      // khách mới chưa có trong danh sách file thì chờ tên từ Sheet
+      if (!found) { gn.textContent = 'Đang tải...'; }
       fitGuest();
       fetch(APP_URL + "?dfo=" + encodeURIComponent(k))
         .then(function(r){ return r.json(); })
         .then(function(res){
-          if (res && res.ok && res.ten && res.ten !== gn.textContent) {
-            gn.textContent = res.ten; fitGuest();
+          if (res && res.ok && res.ten) {
+            if (res.ten !== gn.textContent) { gn.textContent = res.ten; fitGuest(); }
+          } else if (!found) {
+            gn.textContent = 'Quý khách'; fitGuest();   // không có trong Sheet thì để mặc định
           }
-        }).catch(function(){ /* lỗi mạng thì giữ tên dự phòng */ });
+        }).catch(function(){
+          if (!found) { gn.textContent = 'Quý khách'; fitGuest(); }
+        });
     }
   })();
 
