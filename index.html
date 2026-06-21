@@ -939,13 +939,20 @@
 
     // 1. có ?ten= thì ưu tiên tuyệt đối
     if (tenParam && gn) { gn.textContent = tenParam; fitGuest(); }
-    // 2. có ?dfo= thì lấy tên từ danh sách trong file (đã đủ Mr/Mrs), hiện cố định không đổi
+    // 2. có ?dfo= thì hiện ngay từ danh sách dự phòng rồi gọi Sheet lấy tên mới nhất
     else if (k && gn) {
       const km = chuanMa(k);
       for (let i = 0; i < KHACH_LIST.length; i++) {
         if (chuanMa(KHACH_LIST[i].ma) === km) { gn.textContent = KHACH_LIST[i].ten; break; }
       }
       fitGuest();
+      fetch(APP_URL + "?dfo=" + encodeURIComponent(k))
+        .then(function(r){ return r.json(); })
+        .then(function(res){
+          if (res && res.ok && res.ten && res.ten !== gn.textContent) {
+            gn.textContent = res.ten; fitGuest();
+          }
+        }).catch(function(){ /* lỗi mạng thì giữ tên dự phòng */ });
     }
   })();
 
